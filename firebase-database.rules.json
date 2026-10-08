@@ -1,0 +1,112 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "designerProfiles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || (root.child('designerProfiles').child(auth.uid).child('active').val() === true && root.child('designerProfiles').child(auth.uid).child('role').val() === 'admin'))"
+      }
+    },
+    "designerDirectory": {
+      ".read": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true"
+    },
+    "designRequests": {
+      ".read": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true",
+      "$requestId": {
+        "status": {
+          ".write": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true && newData.exists()",
+          ".validate": "newData.isString() && (newData.val() === 'new' || newData.val() === 'in_progress' || newData.val() === 'completed')"
+        },
+        "assignedDesignerUid": {
+          ".write": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true && newData.exists()",
+          ".validate": "newData.isString() && (newData.val() === '' || newData.val() === auth.uid || (root.child('designerProfiles').child(auth.uid).child('active').val() === true && root.child('designerProfiles').child(auth.uid).child('role').val() === 'admin'))"
+        },
+        "updatedAt": {
+          ".write": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true && newData.exists()",
+          ".validate": "newData.isNumber() && newData.val() === now"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "designerNotes": {
+      "$requestId": {
+        ".read": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true",
+        "$noteId": {
+          ".write": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true && root.child('designRequests').child($requestId).exists() && (!data.exists() ? newData.child('authorUid').val() === auth.uid : (data.child('authorUid').val() === auth.uid || (root.child('designerProfiles').child(auth.uid).child('active').val() === true && root.child('designerProfiles').child(auth.uid).child('role').val() === 'admin')))",
+          ".validate": "newData.hasChildren(['authorUid', 'authorName', 'content', 'createdAt']) && newData.child('authorUid').val() === (data.exists() ? data.child('authorUid').val() : auth.uid)",
+          "authorUid": {
+            ".validate": "newData.isString()"
+          },
+          "authorName": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "content": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 4000"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() === now)"
+          },
+          "editedAt": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "designVersions": {
+      "$requestId": {
+        ".read": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true",
+        "$versionId": {
+          ".write": "auth != null && root.child('designerProfiles').child(auth.uid).child('active').val() === true && root.child('designRequests').child($requestId).exists() && (!data.exists() ? newData.child('designerUid').val() === auth.uid : (data.child('designerUid').val() === auth.uid || (root.child('designerProfiles').child(auth.uid).child('active').val() === true && root.child('designerProfiles').child(auth.uid).child('role').val() === 'admin')))",
+          ".validate": "newData.hasChildren(['designerUid', 'designerName', 'panel', 'version', 'fileMetadata', 'createdAt']) && newData.child('designerUid').val() === (data.exists() ? data.child('designerUid').val() : auth.uid)",
+          "designerUid": {
+            ".validate": "newData.isString()"
+          },
+          "designerName": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "panel": {
+            ".validate": "newData.isString() && (newData.val() === 'Front' || newData.val() === 'Back' || newData.val() === 'Left' || newData.val() === 'Right' || newData.val() === 'Full bag')"
+          },
+          "version": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+          },
+          "notes": {
+            ".validate": "newData.isString() && newData.val().length <= 2000"
+          },
+          "fileMetadata": {
+            ".validate": "newData.hasChildren(['name', 'size', 'type', 'stored'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length <= 200"
+            },
+            "size": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "type": {
+              ".validate": "newData.isString() && newData.val().length <= 100"
+            },
+            "stored": {
+              ".validate": "newData.val() === false"
+            },
+            "locationNote": {
+              ".validate": "newData.isString() && newData.val().length <= 300"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && (data.exists() ? newData.val() === data.val() : newData.val() === now)"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    }
+  }
+}
